@@ -175,10 +175,10 @@ func (b *InsertBuilder) appendValuesToSQL(w io.Writer, args []interface{}) ([]in
 				args = append(args, val)
 			}
 		}
-		valuesStrings[r] = fmt.Sprintf("(%s)", strings.Join(valueStrings, ","))
+		valuesStrings[r] = strings.Join(valueStrings, ",")
 	}
 
-	io.WriteString(w, strings.Join(valuesStrings, ","))
+	io.WriteString(w, fmt.Sprintf("(%s)", strings.Join(valuesStrings, ",")))
 
 	return args, nil
 }
