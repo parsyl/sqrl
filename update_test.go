@@ -2,7 +2,7 @@ package sqrl
 
 import (
 	"context"
-	"database/sql"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -152,7 +152,7 @@ func TestUpdateBuilderNoRunner(t *testing.T) {
 
 func TestUpdateResultBuilder(t *testing.T) {
 	db := &DBStub{
-		err: sql.ErrConnDone,
+		err: errors.New("test error"),
 	}
 
 	_, err := Update("test").Set("x", 1).RunWith(db).RowsAffected().Exec()
@@ -180,7 +180,7 @@ func TestUpdateResultBuilder(t *testing.T) {
 	assert.Equal(t, res.lastInsertId, id)
 
 	res = &resultStub{
-		err: sql.ErrConnDone,
+		err: errors.New("test error"),
 	}
 	db = &DBStub{
 		res: res,

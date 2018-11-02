@@ -2,7 +2,7 @@ package sqrl
 
 import (
 	"context"
-	"database/sql"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -211,7 +211,7 @@ func TestDeleteBuilderNoRunner(t *testing.T) {
 
 func TestDeleteResultBuilder(t *testing.T) {
 	db := &DBStub{
-		err: sql.ErrConnDone,
+		err: errors.New("test error"),
 	}
 
 	_, err := Delete("test").RunWith(db).RowsAffected().Exec()
@@ -238,7 +238,7 @@ func TestDeleteResultBuilder(t *testing.T) {
 	assert.Equal(t, res.lastInsertId, id)
 
 	res = &resultStub{
-		err: sql.ErrConnDone,
+		err: errors.New("test error"),
 	}
 	db = &DBStub{
 		res: res,
