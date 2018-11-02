@@ -7,6 +7,7 @@ import (
 
 // ResultBuilder wraps the Insert/Update/Delete builder to return sql.Result methods.
 type ResultBuilder interface {
+	RunWith(db ExecerContext) ResultBuilder
 	Exec() (int64, error)
 	ExecContext(ctx context.Context) (int64, error)
 }
@@ -15,6 +16,11 @@ type resultBuilder struct {
 	db       ExecerContext
 	sq       Sqlizer
 	callback func(sql.Result) (int64, error)
+}
+
+func (b *resultBuilder) RunWith(db ExecerContext) ResultBuilder {
+	b.db = db
+	return b
 }
 
 func (b *resultBuilder) Exec() (int64, error) {
