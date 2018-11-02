@@ -2,6 +2,7 @@ package sqrl
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -147,4 +148,47 @@ func TestUpdateBuilderNoRunner(t *testing.T) {
 
 	err = b.Scan()
 	assert.Equal(t, ErrRunnerNotSet, err)
+}
+
+func TestUpdateResultBuilder(t *testing.T) {
+	db := &DBStub{
+		err: sql.ErrConnDone,
+	}
+
+	_, err := Update("test").Set("x", 1).RunWith(db).RowsAffected().Exec()
+	assert.Equal(t, db.err, err)
+	assert.Equal(t, "UPDATE test SET x = ?", db.LastExecSql)
+	assert.Equal(t, []interface{}{1}, db.LastExecArgs)
+
+	_, err = Update("test").Set("x", 1).RunWith(db).LastInsertId().Exec()
+	assert.Equal(t, db.err, err)
+
+	res := &resultStub{
+		rowsAffected: 1,
+		lastInsertId: 42,
+	}
+	db = &DBStub{
+		res: res,
+	}
+
+	c, err := Update("test").Set("x", 1).RunWith(db).RowsAffected().Exec()
+	assert.NoError(t, err)
+	assert.Equal(t, res.rowsAffected, c)
+
+	id, err := Update("test").Set("x", 1).RunWith(db).LastInsertId().Exec()
+	assert.NoError(t, err)
+	assert.Equal(t, res.lastInsertId, id)
+
+	res = &resultStub{
+		err: sql.ErrConnDone,
+	}
+	db = &DBStub{
+		res: res,
+	}
+
+	_, err = Update("test").Set("x", 1).RunWith(db).RowsAffected().Exec()
+	assert.Equal(t, res.err, err)
+
+	_, err = Update("test").Set("x", 1).RunWith(db).LastInsertId().Exec()
+	assert.Equal(t, res.err, err)
 }

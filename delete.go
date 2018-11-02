@@ -57,6 +57,24 @@ func (b *DeleteBuilder) ExecContext(ctx context.Context) (sql.Result, error) {
 	return ExecWithContext(ctx, b.runWith, b)
 }
 
+// RowsAffected returns builder that will exec the query and return affected rows count.
+func (b *DeleteBuilder) RowsAffected() ResultBuilder {
+	return &resultBuilder{
+		db:       b.runWith,
+		sq:       b,
+		callback: sql.Result.RowsAffected,
+	}
+}
+
+// LastInsertId returns builder that will exec the query and return last insert id.
+func (b *DeleteBuilder) LastInsertId() ResultBuilder {
+	return &resultBuilder{
+		db:       b.runWith,
+		sq:       b,
+		callback: sql.Result.LastInsertId,
+	}
+}
+
 // Query builds and Querys the query with the Runner set by RunWith.
 func (b *DeleteBuilder) Query() (*sql.Rows, error) {
 	return b.QueryContext(context.Background())

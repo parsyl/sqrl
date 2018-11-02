@@ -2,6 +2,7 @@ package sqrl
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -116,6 +117,49 @@ func TestInsertBuilderNoRunner(t *testing.T) {
 
 	err = b.Scan()
 	assert.Equal(t, ErrRunnerNotSet, err)
+}
+
+func TestInsertResultBuilder(t *testing.T) {
+	db := &DBStub{
+		err: sql.ErrConnDone,
+	}
+
+	_, err := Insert("test").Values(1).RunWith(db).RowsAffected().Exec()
+	assert.Equal(t, db.err, err)
+	assert.Equal(t, "INSERT INTO test VALUES (?)", db.LastExecSql)
+	assert.Equal(t, []interface{}{1}, db.LastExecArgs)
+
+	_, err = Insert("test").Values(1).RunWith(db).LastInsertId().Exec()
+	assert.Equal(t, db.err, err)
+
+	res := &resultStub{
+		rowsAffected: 1,
+		lastInsertId: 42,
+	}
+	db = &DBStub{
+		res: res,
+	}
+
+	c, err := Insert("test").Values(1).RunWith(db).RowsAffected().Exec()
+	assert.NoError(t, err)
+	assert.Equal(t, res.rowsAffected, c)
+
+	id, err := Insert("test").Values(1).RunWith(db).LastInsertId().Exec()
+	assert.NoError(t, err)
+	assert.Equal(t, res.lastInsertId, id)
+
+	res = &resultStub{
+		err: sql.ErrConnDone,
+	}
+	db = &DBStub{
+		res: res,
+	}
+
+	_, err = Insert("test").Values(1).RunWith(db).RowsAffected().Exec()
+	assert.Equal(t, res.err, err)
+
+	_, err = Insert("test").Values(1).RunWith(db).LastInsertId().Exec()
+	assert.Equal(t, res.err, err)
 }
 
 func TestInsertBuilderSetMap(t *testing.T) {

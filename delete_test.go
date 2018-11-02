@@ -2,6 +2,7 @@ package sqrl
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -206,6 +207,48 @@ func TestDeleteBuilderNoRunner(t *testing.T) {
 
 	err = b.Scan()
 	assert.Equal(t, ErrRunnerNotSet, err)
+}
+
+func TestDeleteResultBuilder(t *testing.T) {
+	db := &DBStub{
+		err: sql.ErrConnDone,
+	}
+
+	_, err := Delete("test").RunWith(db).RowsAffected().Exec()
+	assert.Equal(t, db.err, err)
+	assert.Equal(t, "DELETE FROM test", db.LastExecSql)
+
+	_, err = Delete("test").RunWith(db).LastInsertId().Exec()
+	assert.Equal(t, db.err, err)
+
+	res := &resultStub{
+		rowsAffected: 1,
+		lastInsertId: 42,
+	}
+	db = &DBStub{
+		res: res,
+	}
+
+	c, err := Delete("test").RunWith(db).RowsAffected().Exec()
+	assert.NoError(t, err)
+	assert.Equal(t, res.rowsAffected, c)
+
+	id, err := Delete("test").RunWith(db).LastInsertId().Exec()
+	assert.NoError(t, err)
+	assert.Equal(t, res.lastInsertId, id)
+
+	res = &resultStub{
+		err: sql.ErrConnDone,
+	}
+	db = &DBStub{
+		res: res,
+	}
+
+	_, err = Delete("test").RunWith(db).RowsAffected().Exec()
+	assert.Equal(t, res.err, err)
+
+	_, err = Delete("test").RunWith(db).LastInsertId().Exec()
+	assert.Equal(t, res.err, err)
 }
 
 func TestIssue11(t *testing.T) {
