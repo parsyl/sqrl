@@ -49,7 +49,7 @@ func (b *DeleteBuilder) Exec() (sql.Result, error) {
 	return b.ExecContext(context.Background())
 }
 
-// Exec builds and Execs the query with the Runner set by RunWith using given context.
+// ExecContext builds and Execs the query with the Runner set by RunWith using given context.
 func (b *DeleteBuilder) ExecContext(ctx context.Context) (sql.Result, error) {
 	if b.runWith == nil {
 		return nil, ErrRunnerNotSet
