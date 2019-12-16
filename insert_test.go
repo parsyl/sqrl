@@ -22,7 +22,7 @@ func TestInsertBuilderToSql(t *testing.T) {
 
 	expectedSql :=
 		"WITH prefix AS ? " +
-			"INSERT DELAYED IGNORE INTO a (b,c) VALUES (?,?,?,? + 1) " +
+			"INSERT DELAYED IGNORE INTO a (b,c) VALUES (?,?),(?,? + 1) " +
 			"RETURNING ?"
 	assert.Equal(t, expectedSql, sql)
 
@@ -46,6 +46,18 @@ func TestInsertBuilderPlaceholders(t *testing.T) {
 
 	sql, _, _ = b.PlaceholderFormat(Dollar).ToSql()
 	assert.Equal(t, "INSERT INTO test VALUES ($1,$2)", sql)
+}
+
+func TestInsertBuilderAppendColumn(t *testing.T) {
+	b := Insert("test").Columns("a", "b").Values(1, 2)
+
+	b.AppendColumn("more", 3)
+
+	sql, _, _ := b.PlaceholderFormat(Question).ToSql()
+	assert.Equal(t, "INSERT INTO test (a,b,more) VALUES (?,?,?)", sql)
+
+	sql, _, _ = b.PlaceholderFormat(Dollar).ToSql()
+	assert.Equal(t, "INSERT INTO test (a,b,more) VALUES ($1,$2,$3)", sql)
 }
 
 func TestInsertBuilderRunners(t *testing.T) {
