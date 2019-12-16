@@ -175,10 +175,10 @@ func (b *InsertBuilder) appendValuesToSQL(w io.Writer, args []interface{}) ([]in
 				args = append(args, val)
 			}
 		}
-		valuesStrings[r] = strings.Join(valueStrings, ",")
+		valuesStrings[r] = fmt.Sprintf("(%s)", strings.Join(valueStrings, ","))
 	}
 
-	io.WriteString(w, fmt.Sprintf("(%s)", strings.Join(valuesStrings, ",")))
+	io.WriteString(w, strings.Join(valuesStrings, ","))
 
 	return args, nil
 }
@@ -220,6 +220,16 @@ func (b *InsertBuilder) Into(into string) *InsertBuilder {
 // Columns adds insert columns to the query.
 func (b *InsertBuilder) Columns(columns ...string) *InsertBuilder {
 	b.columns = append(b.columns, columns...)
+	return b
+}
+
+// AppendColumn adds a new column to the insert query.  NOTE: you problaby
+// don't want to use this for muti-row inserts.
+func (b *InsertBuilder) AppendColumn(name string, value interface{}) *InsertBuilder {
+	b.columns = append(b.columns, name)
+	for i, vals := range b.values {
+		b.values[i] = append(vals, value)
+	}
 	return b
 }
 
