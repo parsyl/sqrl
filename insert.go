@@ -277,6 +277,16 @@ func (b *InsertBuilder) SetMap(clauses map[string]interface{}) *InsertBuilder {
 	return b
 }
 
+// AppendColumn adds a new column to the insert query.  NOTE: you problaby
+// don't want to use this for muti-row inserts.
+func (b *InsertBuilder) AppendColumn(name string, value interface{}) *InsertBuilder {
+	b.columns = append(b.columns, name)
+	for i, vals := range b.values {
+		b.values[i] = append(vals, value)
+	}
+	return b
+}
+
 // Select set Select clause for insert query
 // If Values and Select are used, then Select has higher priority
 func (b *InsertBuilder) Select(sb *SelectBuilder) *InsertBuilder {
