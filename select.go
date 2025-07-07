@@ -225,7 +225,8 @@ func (b *SelectBuilder) Columns(columns ...string) *SelectBuilder {
 // Column adds a result column to the query.
 // Unlike Columns, Column accepts args which will be bound to placeholders in
 // the columns string, for example:
-//   Column("IF(col IN ("+Placeholders(3)+"), 1, 0) as col", 1, 2, 3)
+//
+// Column("IF(col IN ("+Placeholders(3)+"), 1, 0) as col", 1, 2, 3)
 func (b *SelectBuilder) Column(column interface{}, args ...interface{}) *SelectBuilder {
 	b.columns = append(b.columns, newPart(column, args...))
 
@@ -269,6 +270,11 @@ func (b *SelectBuilder) LeftJoin(join string, rest ...interface{}) *SelectBuilde
 // RightJoin adds a RIGHT JOIN clause to the query.
 func (b *SelectBuilder) RightJoin(join string, rest ...interface{}) *SelectBuilder {
 	return b.JoinClause("RIGHT JOIN "+join, rest...)
+}
+
+// CrossJoin adds a CROSS JOIN clause to the query.
+func (b *SelectBuilder) CrossJoin(join string, rest ...interface{}) *SelectBuilder {
+	return b.JoinClause("CROSS JOIN "+join, rest...)
 }
 
 // Where adds an expression to the WHERE clause of the query.
